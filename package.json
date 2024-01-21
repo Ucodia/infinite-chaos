@@ -1,0 +1,11 @@
+{
+  "name": "infinite-chaos",
+  "version": "0.1.0",
+  "description": "Command line tool to generate and render chaotic attractors",
+  "author": "Lionel Ringenbach / @ucodia",
+  "main": "index.js",
+  "scripts": {},
+  "dependencies": {
+    "canvas": "^2.11.2"
+  }
+}
