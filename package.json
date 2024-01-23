@@ -4,6 +4,8 @@
   "description": "Command line tool to generate and render chaotic attractors",
   "author": "Lionel Ringenbach / @ucodia",
   "main": "index.js",
+  "type": "module",
+  "private": "true",
   "scripts": {},
   "dependencies": {
     "canvas": "^2.11.2"
