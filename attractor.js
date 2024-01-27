@@ -250,7 +250,7 @@ function draw(context, data, settings, report = true) {
  * @returns The file name of the PNG if written on disk
  */
 export function render(seed, settings) {
-  const { pointCount, xMod, yMod, width, height } = settings;
+  const { pointCount, xMod, yMod, width, height, output } = settings;
 
   const rand = namedLcg(seed);
   const params = createAttractorParams(rand);
@@ -268,7 +268,7 @@ export function render(seed, settings) {
   const context = canvas.getContext("2d");
   draw(context, data, settings);
 
-  const outputDir = path.join(__dirname, "output");
+  const outputDir = path.resolve(__dirname, output);
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
   }

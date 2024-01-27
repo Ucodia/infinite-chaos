@@ -11,4 +11,5 @@ export default {
   marginRatio: 0.25,
   opacity: 0.5,
   optimize: true,
+  output: "./output",
 };
