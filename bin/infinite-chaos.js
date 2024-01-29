@@ -35,7 +35,7 @@ function parseNumber(value) {
 const program = new Command();
 
 program
-  .name("chaos")
+  .name(pkg.name)
   .version(pkg.version)
   .description(pkg.description)
   .option(
