@@ -244,7 +244,7 @@ function draw(context, data, settings, report = true) {
  * @param {*} yMod The Y coordinate modifier
  * @returns The file name of the PNG if written on disk
  */
-export function render(seed, settings) {
+export function render(seed, settings, report = true) {
   const { pointCount, xMod, yMod, width, height, output } = settings;
 
   const rand = namedLcg(seed);
@@ -257,11 +257,11 @@ export function render(seed, settings) {
   }
 
   console.log(`seed: ${seed}\tmods: ${xMod}/${yMod}`);
-  const data = generateAttractor(params, pointCount, xFn, yFn);
+  const data = generateAttractor(params, pointCount, xFn, yFn, report);
 
   const canvas = createCanvas(width, height);
   const context = canvas.getContext("2d");
-  draw(context, data, settings);
+  draw(context, data, settings, report);
 
   const outputDir = path.resolve(process.cwd(), output);
   const buffer = canvas.toBuffer("image/png");
@@ -289,7 +289,7 @@ export function mine(settings) {
     const seed = randomString();
     modCombos.forEach(([xMod, yMod]) => {
       const sx = { ...settings, xMod, yMod };
-      render(seed, sx);
+      render(seed, sx, false);
     });
   }
 }
