@@ -13,6 +13,6 @@ Install `Cairo` using `brew`:
 brew install pkg-config cairo pango
 ```
 
-## Credits
+## References
 
-This work was inspired by Paul Bourke's article on random attractors: https://paulbourke.net/fractals/lyapunov/
+- Paul Bourke's article on random attractors using Lyapunov exponents: https://paulbourke.net/fractals/lyapunov/
