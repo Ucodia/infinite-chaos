@@ -268,10 +268,7 @@ export function render(seed, settings) {
   const context = canvas.getContext("2d");
   draw(context, data, settings);
 
-  const outputDir = path.resolve(__dirname, output);
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
-  }
+  const outputDir = path.resolve(process.cwd(), output);
   const buffer = canvas.toBuffer("image/png");
   const fileName = path.join(outputDir, `${seed}_${xMod}_${yMod}.png`);
   fs.writeFileSync(fileName, buffer);
