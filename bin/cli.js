@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
-import os from "os";
+import cluster from "cluster";
+import { Command } from "commander";
 import fs from "fs";
+import os from "os";
 import path from "path";
 import { fileURLToPath } from "url";
-import { Command } from "commander";
-import cluster from "cluster";
-import { render, mine } from "../attractor.js";
 import defaultConfig from "../chaos.config.js";
+import { mine, render } from "../index.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const pkgPath = path.join(__dirname, "../package.json");

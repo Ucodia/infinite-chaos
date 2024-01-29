@@ -1,11 +1,6 @@
+import { createCanvas } from "canvas";
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
-import { createCanvas } from "canvas";
-
-// polyfill for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const modifiers = {
   noop: (v) => v,
