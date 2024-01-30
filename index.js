@@ -1,6 +1,6 @@
 import { createCanvas } from "canvas";
-import fs from "fs";
 import path from "path";
+import sharp from "sharp";
 
 const modifiers = {
   noop: (v) => v,
@@ -245,7 +245,7 @@ function draw(context, data, settings, report = true) {
  * @returns The file name of the PNG if written on disk
  */
 export function render(seed, settings, report = true) {
-  const { pointCount, xMod, yMod, width, height, output } = settings;
+  const { pointCount, xMod, yMod, width, height, output, quality } = settings;
 
   const rand = namedLcg(seed);
   const params = createAttractorParams(rand);
@@ -264,11 +264,12 @@ export function render(seed, settings, report = true) {
   draw(context, data, settings, report);
 
   const outputDir = path.resolve(process.cwd(), output);
+  const outputFile = path.join(outputDir, `${seed}_${xMod}_${yMod}.png`);
   const buffer = canvas.toBuffer("image/png");
-  const fileName = path.join(outputDir, `${seed}_${xMod}_${yMod}.png`);
-  fs.writeFileSync(fileName, buffer);
 
-  return fileName;
+  sharp(buffer).png({ quality }).toFile(outputFile);
+
+  return outputFile;
 }
 
 /**

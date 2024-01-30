@@ -10,6 +10,6 @@ export default {
   height: 1080,
   marginRatio: 0.25,
   opacity: 0.5,
-  optimize: true,
   output: "./output",
+  quality: 90,
 };

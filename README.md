@@ -45,6 +45,7 @@ Options:
   -r, --marginRatio [ratio]      Rendering margin ratio.
   -a, --opacity [opacity]        Rendering opacity.
   -o, --output [path]            Rendering output directory.
+  -q, --quality [quality]        Rendering output quality from 0 to 100 (default: 90).
   -C, --cpus [cpus]              Number of CPU cores to use for mining.
   --help                         display help for command
 ```

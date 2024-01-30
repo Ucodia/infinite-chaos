@@ -62,6 +62,10 @@ program
   .option("-r, --marginRatio [ratio]", "Rendering margin ratio.")
   .option("-a, --opacity [opacity]", "Rendering opacity.")
   .option("-o, --output [path]", "Rendering output directory.")
+  .option(
+    "-q, --quality [quality]",
+    "Rendering output quality from 0 to 100 (default: 90)."
+  )
   .option("-C, --cpus [cpus]", "Number of CPU cores to use for mining.");
 
 program.parse(process.argv);
