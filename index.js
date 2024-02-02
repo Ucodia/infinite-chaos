@@ -45,11 +45,11 @@ function createAttractorParams(rand) {
   const ax = [];
   const ay = [];
   for (let i = 0; i < 6; i++) {
-    ax[i] = truncateFloat(4 * (rand() - 0.5));
-    ay[i] = truncateFloat(4 * (rand() - 0.5));
+    ax[i] = 4 * (rand() - 0.5);
+    ay[i] = 4 * (rand() - 0.5);
   }
-  const x0 = truncateFloat(rand() - 0.5);
-  const y0 = truncateFloat(rand() - 0.5);
+  const x0 = rand() - 0.5;
+  const y0 = rand() - 0.5;
   return { ax, ay, x0, y0 };
 }
 
@@ -232,10 +232,6 @@ function hashCode(s) {
   for (var i = 0, h = 0; i < s.length; i++)
     h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
   return h;
-}
-
-function truncateFloat(num, decimalPlaces = 4) {
-  return Number.parseFloat(num.toFixed(decimalPlaces));
 }
 
 function floorToFirstDecimal(number) {
