@@ -46,6 +46,8 @@ Options:
   -a, --opacity [opacity]        Rendering opacity.
   -o, --output [path]            Rendering output directory.
   -q, --quality [quality]        Rendering output quality from 0 to 100 (default: 90).
+  -f, --filter [filter]          Spread filtering level to skip the rendering of clustered outputs from 0 to 1
+                                 (default: 0.2).
   -C, --cpus [cpus]              Number of CPU cores to use for mining.
   --help                         display help for command
 ```
