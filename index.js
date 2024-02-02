@@ -53,9 +53,9 @@ function createAttractorParams(rand) {
   return { ax, ay, x0, y0 };
 }
 
-const lyapunovStart = 1000;
-const lyapunovEnd = 2000;
 function isChaotic(params, xFn, yFn) {
+  const lyapunovStart = 1000;
+  const lyapunovEnd = 50000;
   const { x, y, xMin, xMax, yMin, yMax } = generateAttractor(
     params,
     lyapunovEnd,
@@ -151,7 +151,56 @@ function generateAttractor({ ax, ay, x0, y0 }, n, xFn, yFn, report = true) {
   }
 
   if (report) console.log();
+
   return { x, y, xMin, xMax, yMin, yMax };
+}
+
+function analyzeData({ x, y, xMin, xMax, yMin, yMax }, report = true) {
+  const startTime = performance.now();
+  const cells = {};
+
+  // divide the smallest side in at least 100 cells
+  const minSubdivision = 100;
+  const minLength = Math.min(Math.abs(xMax - xMin), Math.abs(yMax - yMin));
+  const cellSize = floorToFirstDecimal(minLength / minSubdivision);
+
+  // find the number of columns/rows
+  const startX = floorToMultiple(xMin, cellSize);
+  const endX = floorToMultiple(xMax, cellSize);
+  const startY = floorToMultiple(yMin, cellSize);
+  const endY = floorToMultiple(yMax, cellSize);
+  const gridWidth = Math.abs(endX - startX);
+  const gridHeight = Math.abs(endY - startY);
+  const cols = Math.round(gridWidth / cellSize);
+  const rows = Math.round(gridHeight / cellSize);
+
+  // analyze maximum 1M first points
+  // spread does not increase much beyond that
+  const n = Math.min(x.length, 1000000);
+  for (let i = 0; i < n; i++) {
+    const cellX = floorToMultiple(x[i], cellSize);
+    const cellY = floorToMultiple(y[i], cellSize);
+    const cellKey = `${cellX}_${cellY}`;
+    if (!cells[cellKey]) {
+      cells[cellKey] = 1;
+    }
+
+    if (report && i % 1000 === 0) {
+      const elapsedTime = performance.now() - startTime;
+      process.stdout.write(
+        `\ranalyzing (${(
+          (i / n) *
+          100
+        ).toFixed()}% / ${elapsedTime.toFixed()}ms)`
+      );
+    }
+  }
+
+  if (report) console.log();
+
+  const spread = Object.keys(cells).length / (cols * rows);
+
+  return { spread };
 }
 
 function lcg(
@@ -187,6 +236,22 @@ function hashCode(s) {
 
 function truncateFloat(num, decimalPlaces = 4) {
   return Number.parseFloat(num.toFixed(decimalPlaces));
+}
+
+function floorToFirstDecimal(number) {
+  if (number >= 1) {
+    return Math.floor(number);
+  } else {
+    const precision = Math.ceil(-Math.log10(number));
+    return Number(number.toString().substr(0, precision + 2));
+  }
+}
+
+function floorToMultiple(number, increment) {
+  const roundedValue = increment * Math.floor(number / increment);
+  const precision = Math.ceil(-Math.log10(increment));
+  const factor = Math.pow(10, precision);
+  return Math.round(roundedValue * factor) / factor;
 }
 
 function opacityToHex(opacity) {
@@ -245,7 +310,16 @@ function draw(context, data, settings, report = true) {
  * @returns The file name of the PNG if written on disk
  */
 export function render(seed, settings, report = true) {
-  const { pointCount, xMod, yMod, width, height, output, quality } = settings;
+  const {
+    pointCount,
+    xMod,
+    yMod,
+    width,
+    height,
+    output,
+    quality,
+    spreadFilter,
+  } = settings;
 
   const rand = namedLcg(seed);
   const params = createAttractorParams(rand);
@@ -258,6 +332,23 @@ export function render(seed, settings, report = true) {
 
   console.log(`seed: ${seed}\tmods: ${xMod}/${yMod}`);
   const data = generateAttractor(params, pointCount, xFn, yFn, report);
+
+  // sometimes non-chaotic properties only show after generation
+  if (
+    isNaN(data.xMin) ||
+    isNaN(data.xMax) ||
+    isNaN(data.yMin) ||
+    isNaN(data.yMax)
+  ) {
+    return;
+  }
+
+  const { spread } = analyzeData(data, report);
+
+  // filter out attractor below spread factor
+  if (spread < spreadFilter) {
+    return;
+  }
 
   const canvas = createCanvas(width, height);
   const context = canvas.getContext("2d");

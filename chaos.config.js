@@ -12,4 +12,6 @@ export default {
   opacity: 0.5,
   output: "./output",
   quality: 90,
+  // spread filter
+  spreadFilter: 0.2,
 };
