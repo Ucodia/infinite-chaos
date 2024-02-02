@@ -224,10 +224,6 @@ function randomString() {
   return Math.random().toString(36).substr(2, 9);
 }
 
-function randomInt(min, max, rand) {
-  return Math.floor(rand() * (max - min + 1)) + min;
-}
-
 function hashCode(s) {
   for (var i = 0, h = 0; i < s.length; i++)
     h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
@@ -355,8 +351,6 @@ export function render(seed, settings, report = true) {
   const buffer = canvas.toBuffer("image/png");
 
   sharp(buffer).png({ quality }).toFile(outputFile);
-
-  return outputFile;
 }
 
 /**
