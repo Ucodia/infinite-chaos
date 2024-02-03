@@ -379,3 +379,94 @@ export function mine(settings) {
     });
   }
 }
+
+// Animation experiment
+
+function range(start, stop, length) {
+  const step = length > 1 ? (stop - start) / (length - 1) : 0;
+  return Array.from({ length: length * 2 }, (_, i) => start + i * step);
+}
+
+function animate(settings, seeds) {
+  const { pointCount, xMod, yMod, width, height, output, quality } = settings;
+  const startTime = performance.now();
+
+  const xFn = modifiers[xMod];
+  const yFn = modifiers[yMod];
+  const frameCount = 5 * 30; // frame count per transition
+
+  const axs = [];
+  const ays = [];
+
+  for (let i = 0; i < seeds.length - 1; i++) {
+    const fromParams = createAttractorParams(namedLcg(seeds[i]));
+    const toParams = createAttractorParams(namedLcg(seeds[i + 1]));
+    for (let j = 0; j < fromParams.ax.length; j++) {
+      if (!axs[j]) axs[j] = [];
+      if (!ays[j]) ays[j] = [];
+      axs[j].push(...range(fromParams.ax[j], toParams.ax[j], frameCount));
+      ays[j].push(...range(fromParams.ay[j], toParams.ay[j], frameCount));
+    }
+  }
+
+  for (let i = 0; i < axs[0].length; i++) {
+    process.stdout.write(
+      `\ranimating (${((i / axs[0].length) * 100).toFixed(2)}% / ${(
+        performance.now() - startTime
+      ).toFixed()}ms)`
+    );
+
+    const params = { ax: [], ay: [], x0: 0, y0: 0 };
+    for (let j = 0; j < axs.length; j++) {
+      params.ax[j] = axs[j][i];
+      params.ay[j] = ays[j][i];
+    }
+
+    const data = generateAttractor(params, pointCount, xFn, yFn, false);
+
+    const canvas = createCanvas(width, height);
+    const context = canvas.getContext("2d");
+    draw(context, data, settings, false);
+
+    const outputDir = path.resolve(process.cwd(), output);
+    const outputFile = path.join(
+      outputDir,
+      `${seeds[0]}_${xMod}_${yMod}_${i.toString().padStart(3, "0")}.png`
+    );
+    const buffer = canvas.toBuffer("image/png");
+
+    sharp(buffer).png({ quality }).toFile(outputFile);
+  }
+
+  console.log("done");
+}
+
+const debugSx = {
+  // attractor settings
+  pointCount: 1000000 * 0.1,
+  xMod: "noop",
+  yMod: "noop",
+  // render settings
+  color: "#00ffa4",
+  background: "#333333",
+  width: 1080,
+  height: 1080,
+  marginRatio: 0.25,
+  opacity: 0.5,
+  output: "./output",
+  quality: 90,
+  // spread filter
+  spreadFilter: 0.2,
+};
+
+const seeds = [
+  "3vg11h8l6",
+  "1mr99uuz9",
+  "3r3anjk2v",
+  "miiigngbt",
+  "sp57s52kv",
+  "unnxuw7ol",
+  "t6yerjusf",
+];
+
+animate(debugSx, seeds);
