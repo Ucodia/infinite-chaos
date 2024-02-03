@@ -220,8 +220,12 @@ function namedLcg(seed) {
   return lcg(Math.abs(hashCode(seed)));
 }
 
-function randomString() {
-  return Math.random().toString(36).substr(2, 9);
+const BASE36_CHARSET = "0123456789abcdefghijkmnopqrstuvwxyz";
+function randomString(n) {
+  return Array(n)
+    .fill(0)
+    .map(() => BASE36_CHARSET[(Math.random() * BASE36_CHARSET.length) | 0])
+    .join("");
 }
 
 function hashCode(s) {
@@ -368,7 +372,7 @@ export function mine(settings) {
   });
 
   while (true) {
-    const seed = randomString();
+    const seed = randomString(8);
     modCombos.forEach(([xMod, yMod]) => {
       const sx = { ...settings, xMod, yMod };
       render(seed, sx, false);
