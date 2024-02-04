@@ -70,9 +70,9 @@ function isChaotic(params, xFn, yFn) {
   do {
     xe = x[0] + (dRand() - 0.5) / 1000.0;
     ye = y[0] + (dRand() - 0.5) / 1000.0;
-    const dx = x[0] - xe;
-    const dy = y[0] - ye;
-    d0 = Math.sqrt(dx * dx + dy * dy);
+    const dxe = x[0] - xe;
+    const dye = y[0] - ye;
+    d0 = Math.sqrt(dxe * dxe + dye * dye);
   } while (d0 <= 0);
 
   if (
@@ -90,8 +90,8 @@ function isChaotic(params, xFn, yFn) {
   }
 
   for (let i = 1; i < lyapunovEnd; i++) {
-    let dx = x[i] - x[i - 1];
-    let dy = y[i] - y[i - 1];
+    const dx = x[i] - x[i - 1];
+    const dy = y[i] - y[i - 1];
 
     if (Math.abs(dx) < 1e-10 && Math.abs(dy) < 1e-10) {
       // attracted towards a single point
@@ -100,12 +100,12 @@ function isChaotic(params, xFn, yFn) {
 
     if (i > lyapunovStart) {
       const [newXe, newYe] = attractor(xe, ye, params.ax, params.ay);
-      dx = x[i] - newXe;
-      dy = y[i] - newYe;
-      const dd = Math.sqrt(dx * dx + dy * dy);
+      const dxe = x[i] - newXe;
+      const dye = y[i] - newYe;
+      const dd = Math.sqrt(dxe * dxe + dye * dye);
       lyapunov += Math.log(Math.abs(dd / d0));
-      xe = x[i] + (d0 * dx) / dd;
-      ye = y[i] + (d0 * dy) / dd;
+      xe = x[i] + (d0 * dxe) / dd;
+      ye = y[i] + (d0 * dye) / dd;
     }
   }
 
