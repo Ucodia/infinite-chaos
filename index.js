@@ -41,16 +41,14 @@ function attractor(x, y, ax, ay, xFn = (v) => v, yFn = (v) => v) {
   ];
 }
 
-function createAttractorParams(rand) {
+function createParams(rand) {
   const ax = [];
   const ay = [];
   for (let i = 0; i < 6; i++) {
     ax[i] = 4 * (rand() - 0.5);
     ay[i] = 4 * (rand() - 0.5);
   }
-  const x0 = rand() - 0.5;
-  const y0 = rand() - 0.5;
-  return { ax, ay, x0, y0 };
+  return { ax, ay };
 }
 
 function generateAttractor({ ax, ay, x0, y0 }, n, xFn, yFn, report = true) {
@@ -325,16 +323,24 @@ export function render(seed, settings, report = true) {
   } = settings;
 
   const rand = namedLcg(seed);
-  const params = createAttractorParams(rand);
+  const params = createParams(rand);
   const xFn = modifiers[xMod];
   const yFn = modifiers[yMod];
+  const x0 = rand() - 0.5;
+  const y0 = rand() - 0.5;
 
-  if (!computeLyapunov(params, xFn, yFn)) {
+  if (!computeLyapunov({ ...params, x0, y0 }, xFn, yFn)) {
     return;
   }
 
   console.log(`seed: ${seed}\tmods: ${xMod}/${yMod}`);
-  const data = generateAttractor(params, pointCount, xFn, yFn, report);
+  const data = generateAttractor(
+    { ...params, x0, y0 },
+    pointCount,
+    xFn,
+    yFn,
+    report
+  );
   const bounds = computeBounds(data);
 
   // sometimes non-chaotic properties only show after generation
