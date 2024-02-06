@@ -60,36 +60,31 @@ function createParams(rand) {
 }
 
 function generateAttractor({ ax, ay, x0, y0 }, n, xFn, yFn, report = true) {
-  let x = [x0];
-  let y = [y0];
-
+  const points = [[x0, y0]];
   const updateProgress = createProgressUpdater("generating", n);
-  for (let i = 1; i < n; i++) {
-    const [nextX, nextY] = attractor(x[i - 1], y[i - 1], ax, ay, xFn, yFn);
-    x[i] = nextX;
-    y[i] = nextY;
 
+  for (let i = 1; i < n; i++) {
+    points[i] = attractor(points[i - 1][0], points[i - 1][1], ax, ay, xFn, yFn);
     if (report) updateProgress(i);
   }
 
-  return { x, y };
+  return points;
 }
 
 function computeLyapunov(params, xFn, yFn) {
   const lyapunovStart = 1000;
   const lyapunovEnd = 50000;
-  const data = generateAttractor(params, lyapunovEnd, xFn, yFn, false);
-  const { x, y } = data;
-  const { xMin, xMax, yMin, yMax } = computeBounds(data);
+  const points = generateAttractor(params, lyapunovEnd, xFn, yFn, false);
+  const { xMin, xMax, yMin, yMax } = computeBounds(points);
   let lyapunov = 0;
   let dRand = randFromSeed("disturbance");
   let d0, xe, ye;
 
   do {
-    xe = x[0] + (dRand() - 0.5) / 1000.0;
-    ye = y[0] + (dRand() - 0.5) / 1000.0;
-    const dxe = x[0] - xe;
-    const dye = y[0] - ye;
+    xe = points[0][0] + (dRand() - 0.5) / 1000.0;
+    ye = points[0][1] + (dRand() - 0.5) / 1000.0;
+    const dxe = points[0][0] - xe;
+    const dye = points[0][1] - ye;
     d0 = Math.sqrt(dxe * dxe + dye * dye);
   } while (d0 <= 0);
 
@@ -108,8 +103,8 @@ function computeLyapunov(params, xFn, yFn) {
   }
 
   for (let i = 1; i < lyapunovEnd; i++) {
-    const dx = x[i] - x[i - 1];
-    const dy = y[i] - y[i - 1];
+    const dx = points[i][0] - points[i - 1][0];
+    const dy = points[i][1] - points[i - 1][1];
 
     if (Math.abs(dx) < 1e-10 && Math.abs(dy) < 1e-10) {
       // attracted towards a single point
@@ -118,12 +113,12 @@ function computeLyapunov(params, xFn, yFn) {
 
     if (i > lyapunovStart) {
       const [newXe, newYe] = attractor(xe, ye, params.ax, params.ay, xFn, yFn);
-      const dxe = x[i] - newXe;
-      const dye = y[i] - newYe;
+      const dxe = points[i][0] - newXe;
+      const dye = points[i][1] - newYe;
       const dd = Math.sqrt(dxe * dxe + dye * dye);
       lyapunov += Math.log(Math.abs(dd / d0));
-      xe = x[i] + (d0 * dxe) / dd;
-      ye = y[i] + (d0 * dye) / dd;
+      xe = points[i][0] + (d0 * dxe) / dd;
+      ye = points[i][1] + (d0 * dye) / dd;
     }
   }
 
@@ -138,21 +133,21 @@ function computeLyapunov(params, xFn, yFn) {
   return true;
 }
 
-function computeBounds({ x, y }) {
+function computeBounds(points) {
   let xMin = Number.MAX_VALUE;
   let xMax = Number.MIN_VALUE;
   let yMin = Number.MAX_VALUE;
   let yMax = Number.MIN_VALUE;
-  for (let i = 0; i < x.length; i++) {
-    xMin = Math.min(xMin, x[i]);
-    yMin = Math.min(yMin, y[i]);
-    xMax = Math.max(xMax, x[i]);
-    yMax = Math.max(yMax, y[i]);
+  for (let i = 0; i < points.length; i++) {
+    xMin = Math.min(xMin, points[i][0]);
+    yMin = Math.min(yMin, points[i][1]);
+    xMax = Math.max(xMax, points[i][0]);
+    yMax = Math.max(yMax, points[i][1]);
   }
   return { xMin, xMax, yMin, yMax };
 }
 
-function computeSpread({ x, y }, { xMin, xMax, yMin, yMax }, report = true) {
+function computeSpread(points, { xMin, xMax, yMin, yMax }, report = true) {
   const cells = {};
 
   // divide the smallest side in at least 100 cells
@@ -172,19 +167,17 @@ function computeSpread({ x, y }, { xMin, xMax, yMin, yMax }, report = true) {
 
   // analyze maximum 1M first points
   // spread does not increase much beyond that
-  const n = Math.min(x.length, 1000000);
+  const n = Math.min(points.length, 1000000);
   const updateProgress = createProgressUpdater("analyzing", n);
   for (let i = 0; i < n; i++) {
-    const cellX = floorToMultiple(x[i], cellSize);
-    const cellY = floorToMultiple(y[i], cellSize);
+    const cellX = floorToMultiple(points[i][0], cellSize);
+    const cellY = floorToMultiple(points[i][1], cellSize);
     const cellKey = `${cellX}_${cellY}`;
     if (!cells[cellKey]) {
       cells[cellKey] = 1;
     }
 
-    if (report) {
-      updateProgress(i);
-    }
+    if (report) updateProgress(i);
   }
 
   const spread = Object.keys(cells).length / (cols * rows);
@@ -194,7 +187,7 @@ function computeSpread({ x, y }, { xMin, xMax, yMin, yMax }, report = true) {
 
 function draw(
   context,
-  { x, y },
+  points,
   { xMin, xMax, yMin, yMax },
   settings,
   report = true
@@ -217,10 +210,10 @@ function draw(
 
   context.fillStyle = `${color}${opacityToHex(opacity)}`;
 
-  const updateProgress = createProgressUpdater("drawing", x.length);
-  for (let i = 0; i < x.length; i++) {
-    let ix = centerX + (x[i] - xMin) * scale;
-    let iy = centerY + (y[i] - yMin) * scale;
+  const updateProgress = createProgressUpdater("drawing", points.length);
+  for (let i = 0; i < points.length; i++) {
+    let ix = centerX + (points[i][0] - xMin) * scale;
+    let iy = centerY + (points[i][1] - yMin) * scale;
     context.fillRect(ix, iy, 1, 1);
 
     if (report) updateProgress(i);
@@ -259,14 +252,14 @@ export function render(seed, settings, report = true) {
   }
 
   console.log(`seed: ${seed}\tmods: ${xMod}/${yMod}`);
-  const data = generateAttractor(
+  const points = generateAttractor(
     { ...params, x0, y0 },
     pointCount,
     xFn,
     yFn,
     report
   );
-  const bounds = computeBounds(data);
+  const bounds = computeBounds(points);
 
   // sometimes non-chaotic properties only show after generation
   if (
@@ -278,7 +271,7 @@ export function render(seed, settings, report = true) {
     return;
   }
 
-  const spread = computeSpread(data, bounds, report);
+  const spread = computeSpread(points, bounds, report);
 
   // filter out attractor below spread factor
   if (spread < spreadFilter) {
@@ -287,7 +280,7 @@ export function render(seed, settings, report = true) {
 
   const canvas = createCanvas(width, height);
   const context = canvas.getContext("2d");
-  draw(context, data, bounds, settings, report);
+  draw(context, points, bounds, settings, report);
 
   const outputDir = path.resolve(process.cwd(), output);
   const outputFile = path.join(outputDir, `${seed}_${xMod}_${yMod}.png`);
