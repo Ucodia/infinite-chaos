@@ -2,12 +2,12 @@ import { createCanvas } from "canvas";
 import path from "path";
 import sharp from "sharp";
 import {
-  randomString,
-  randFromSeed,
-  floorToMultiple,
-  floorToFirstDecimal,
-  opacityToHex,
   createProgressUpdater,
+  floorToFirstDecimal,
+  floorToMultiple,
+  opacityToHex,
+  randFromSeed,
+  randomString,
 } from "./utlis.js";
 
 const modifiers = {
@@ -147,7 +147,8 @@ function computeBounds(points) {
   return { xMin, xMax, yMin, yMax };
 }
 
-function computeSpread(points, { xMin, xMax, yMin, yMax }, report = true) {
+function computeSpread(points, bounds, report = true) {
+  const { xMin, xMax, yMin, yMax } = bounds;
   const cells = {};
 
   // divide the smallest side in at least 100 cells
@@ -185,13 +186,8 @@ function computeSpread(points, { xMin, xMax, yMin, yMax }, report = true) {
   return spread;
 }
 
-function draw(
-  context,
-  points,
-  { xMin, xMax, yMin, yMax },
-  settings,
-  report = true
-) {
+function draw(context, points, bounds, settings, report = true) {
+  const { xMin, xMax, yMin, yMax } = bounds;
   const { color, background, width, height, marginRatio, opacity } = settings;
 
   context.fillStyle = background;
@@ -223,10 +219,6 @@ function draw(
 /**
  * Renders an attractor as a PNG file on the disk given that provided
  * attractor parameters exhibits chaotic behavior.
- * @param {*} seed The seed to generate the attractor parameters
- * @param {*} xMod The X coordinate modifier
- * @param {*} yMod The Y coordinate modifier
- * @returns The file name of the PNG if written on disk
  */
 export function render(seed, settings, report = true) {
   const {
