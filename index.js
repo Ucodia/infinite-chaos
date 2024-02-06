@@ -1,6 +1,14 @@
 import { createCanvas } from "canvas";
 import path from "path";
 import sharp from "sharp";
+import {
+  randomString,
+  randFromSeed,
+  floorToMultiple,
+  floorToFirstDecimal,
+  opacityToHex,
+  createProgressUpdater,
+} from "./utlis.js";
 
 const modifiers = {
   noop: (v) => v,
@@ -74,7 +82,7 @@ function computeLyapunov(params, xFn, yFn) {
   const { x, y } = data;
   const { xMin, xMax, yMin, yMax } = computeBounds(data);
   let lyapunov = 0;
-  let dRand = namedLcg("disturbance");
+  let dRand = randFromSeed("disturbance");
   let d0, xe, ye;
 
   do {
@@ -184,89 +192,6 @@ function computeSpread({ x, y }, { xMin, xMax, yMin, yMax }, report = true) {
   return spread;
 }
 
-function lcg(
-  seed,
-  modulus = 4294967296,
-  multiplier = 1664525,
-  increment = 1013904223
-) {
-  let z = seed;
-  return () => {
-    z = (multiplier * z + increment) % modulus;
-    return z / modulus;
-  };
-}
-
-function namedLcg(seed) {
-  return lcg(Math.abs(hashCode(seed)));
-}
-
-const BASE36_CHARSET = "0123456789abcdefghijkmnopqrstuvwxyz";
-function randomString(n) {
-  return Array(n)
-    .fill(0)
-    .map(() => BASE36_CHARSET[(Math.random() * BASE36_CHARSET.length) | 0])
-    .join("");
-}
-
-function hashCode(s) {
-  for (var i = 0, h = 0; i < s.length; i++)
-    h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
-  return h;
-}
-
-function floorToFirstDecimal(number) {
-  if (number >= 1) {
-    return Math.floor(number);
-  } else {
-    const precision = Math.ceil(-Math.log10(number));
-    return Number(number.toString().substr(0, precision + 2));
-  }
-}
-
-function floorToMultiple(number, increment) {
-  const roundedValue = increment * Math.floor(number / increment);
-  const precision = Math.ceil(-Math.log10(increment));
-  const factor = Math.pow(10, precision);
-  return Math.round(roundedValue * factor) / factor;
-}
-
-function opacityToHex(opacity) {
-  return Math.round(Math.max(0, Math.min(1, opacity)) * 255)
-    .toString(16)
-    .toUpperCase()
-    .padStart(2, "0");
-}
-
-function createProgressUpdater(label, totalIterations, updateInterval = 100) {
-  const startTime = performance.now();
-  let lastUpdateTime = 0;
-
-  return function updateProgress(iteration) {
-    const currentTime = performance.now();
-    const isLast = iteration === totalIterations - 1;
-
-    if (currentTime - lastUpdateTime >= updateInterval || isLast) {
-      lastUpdateTime = currentTime;
-      const elapsedTime = currentTime - startTime;
-      const progress = (iteration / totalIterations) * 100;
-      const progressChars = Math.round((progress / 100) * 20);
-      const progressBar =
-        "=".repeat(progressChars) + "-".repeat(20 - progressChars);
-      process.stdout.write(
-        `\r${label.padEnd(
-          20,
-          " "
-        )}: [${progressBar}] ${progress.toFixed()}% / ${elapsedTime.toFixed()}ms`
-      );
-    }
-
-    if (isLast) {
-      process.stdout.write("\n");
-    }
-  };
-}
-
 function draw(
   context,
   { x, y },
@@ -322,7 +247,7 @@ export function render(seed, settings, report = true) {
     spreadFilter,
   } = settings;
 
-  const rand = namedLcg(seed);
+  const rand = randFromSeed(seed);
   const params = createParams(rand);
   const xFn = modifiers[xMod];
   const yFn = modifiers[yMod];
