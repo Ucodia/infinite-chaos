@@ -239,11 +239,7 @@ function opacityToHex(opacity) {
     .padStart(2, "0");
 }
 
-function createProgressUpdater(
-  processName,
-  totalIterations,
-  updateInterval = 100
-) {
+function createProgressUpdater(label, totalIterations, updateInterval = 100) {
   const startTime = performance.now();
   let lastUpdateTime = 0;
 
@@ -252,14 +248,18 @@ function createProgressUpdater(
     const isLast = iteration === totalIterations - 1;
 
     if (currentTime - lastUpdateTime >= updateInterval || isLast) {
-      const elapsedTime = currentTime - startTime;
-      const progressString = `\r${processName}: ${(
-        (iteration / totalIterations) *
-        100
-      ).toFixed()}% / ${elapsedTime.toFixed()}ms`;
-      process.stdout.write(progressString);
-
       lastUpdateTime = currentTime;
+      const elapsedTime = currentTime - startTime;
+      const progress = (iteration / totalIterations) * 100;
+      const progressChars = Math.round((progress / 100) * 20);
+      const progressBar =
+        "=".repeat(progressChars) + "-".repeat(20 - progressChars);
+      process.stdout.write(
+        `\r${label.padEnd(
+          20,
+          " "
+        )}: [${progressBar}] ${progress.toFixed()}% / ${elapsedTime.toFixed()}ms`
+      );
     }
 
     if (isLast) {
