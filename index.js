@@ -53,16 +53,28 @@ function createAttractorParams(rand) {
   return { ax, ay, x0, y0 };
 }
 
-function isChaotic(params, xFn, yFn) {
+function generateAttractor({ ax, ay, x0, y0 }, n, xFn, yFn, report = true) {
+  let x = [x0];
+  let y = [y0];
+
+  const updateProgress = createProgressUpdater("generating", n);
+  for (let i = 1; i < n; i++) {
+    const [nextX, nextY] = attractor(x[i - 1], y[i - 1], ax, ay, xFn, yFn);
+    x[i] = nextX;
+    y[i] = nextY;
+
+    if (report) updateProgress(i);
+  }
+
+  return { x, y };
+}
+
+function computeLyapunov(params, xFn, yFn) {
   const lyapunovStart = 1000;
   const lyapunovEnd = 50000;
-  const { x, y, xMin, xMax, yMin, yMax } = generateAttractor(
-    params,
-    lyapunovEnd,
-    xFn,
-    yFn,
-    false
-  );
+  const data = generateAttractor(params, lyapunovEnd, xFn, yFn, false);
+  const { x, y } = data;
+  const { xMin, xMax, yMin, yMax } = computeBounds(data);
   let lyapunov = 0;
   let dRand = namedLcg("disturbance");
   let d0, xe, ye;
@@ -120,32 +132,21 @@ function isChaotic(params, xFn, yFn) {
   return true;
 }
 
-function generateAttractor({ ax, ay, x0, y0 }, n, xFn, yFn, report = true) {
-  let x = [x0];
-  let y = [y0];
+function computeBounds({ x, y }) {
   let xMin = Number.MAX_VALUE;
   let xMax = Number.MIN_VALUE;
   let yMin = Number.MAX_VALUE;
   let yMax = Number.MIN_VALUE;
-
-  const updateProgress = createProgressUpdater("generating", n);
-  for (let i = 1; i < n; i++) {
-    const [nextX, nextY] = attractor(x[i - 1], y[i - 1], ax, ay, xFn, yFn);
-    x[i] = nextX;
-    y[i] = nextY;
-
+  for (let i = 0; i < x.length; i++) {
     xMin = Math.min(xMin, x[i]);
     yMin = Math.min(yMin, y[i]);
     xMax = Math.max(xMax, x[i]);
     yMax = Math.max(yMax, y[i]);
-
-    if (report) updateProgress(i);
   }
-
-  return { x, y, xMin, xMax, yMin, yMax };
+  return { xMin, xMax, yMin, yMax };
 }
 
-function analyzeData({ x, y, xMin, xMax, yMin, yMax }, report = true) {
+function computeSpread({ x, y }, { xMin, xMax, yMin, yMax }, report = true) {
   const cells = {};
 
   // divide the smallest side in at least 100 cells
@@ -182,7 +183,7 @@ function analyzeData({ x, y, xMin, xMax, yMin, yMax }, report = true) {
 
   const spread = Object.keys(cells).length / (cols * rows);
 
-  return { spread };
+  return spread;
 }
 
 function lcg(
@@ -268,8 +269,13 @@ function createProgressUpdater(label, totalIterations, updateInterval = 100) {
   };
 }
 
-function draw(context, data, settings, report = true) {
-  const { x, y, xMin, xMax, yMin, yMax } = data;
+function draw(
+  context,
+  { x, y },
+  { xMin, xMax, yMin, yMax },
+  settings,
+  report = true
+) {
   const { color, background, width, height, marginRatio, opacity } = settings;
 
   context.fillStyle = background;
@@ -323,24 +329,25 @@ export function render(seed, settings, report = true) {
   const xFn = modifiers[xMod];
   const yFn = modifiers[yMod];
 
-  if (!isChaotic(params, xFn, yFn)) {
+  if (!computeLyapunov(params, xFn, yFn)) {
     return;
   }
 
   console.log(`seed: ${seed}\tmods: ${xMod}/${yMod}`);
   const data = generateAttractor(params, pointCount, xFn, yFn, report);
+  const bounds = computeBounds(data);
 
   // sometimes non-chaotic properties only show after generation
   if (
-    isNaN(data.xMin) ||
-    isNaN(data.xMax) ||
-    isNaN(data.yMin) ||
-    isNaN(data.yMax)
+    isNaN(bounds.xMin) ||
+    isNaN(bounds.xMax) ||
+    isNaN(bounds.yMin) ||
+    isNaN(bounds.yMax)
   ) {
     return;
   }
 
-  const { spread } = analyzeData(data, report);
+  const spread = computeSpread(data, bounds, report);
 
   // filter out attractor below spread factor
   if (spread < spreadFilter) {
@@ -349,7 +356,7 @@ export function render(seed, settings, report = true) {
 
   const canvas = createCanvas(width, height);
   const context = canvas.getContext("2d");
-  draw(context, data, settings, report);
+  draw(context, data, bounds, settings, report);
 
   const outputDir = path.resolve(process.cwd(), output);
   const outputFile = path.join(outputDir, `${seed}_${xMod}_${yMod}.png`);
