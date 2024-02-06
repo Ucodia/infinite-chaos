@@ -121,7 +121,6 @@ function isChaotic(params, xFn, yFn) {
 }
 
 function generateAttractor({ ax, ay, x0, y0 }, n, xFn, yFn, report = true) {
-  const startTime = performance.now();
   let x = [x0];
   let y = [y0];
   let xMin = Number.MAX_VALUE;
@@ -129,6 +128,7 @@ function generateAttractor({ ax, ay, x0, y0 }, n, xFn, yFn, report = true) {
   let yMin = Number.MAX_VALUE;
   let yMax = Number.MIN_VALUE;
 
+  const updateProgress = createProgressUpdater("generating", n);
   for (let i = 1; i < n; i++) {
     const [nextX, nextY] = attractor(x[i - 1], y[i - 1], ax, ay, xFn, yFn);
     x[i] = nextX;
@@ -139,24 +139,13 @@ function generateAttractor({ ax, ay, x0, y0 }, n, xFn, yFn, report = true) {
     xMax = Math.max(xMax, x[i]);
     yMax = Math.max(yMax, y[i]);
 
-    if (report && i % 1000 === 0) {
-      const elapsedTime = performance.now() - startTime;
-      process.stdout.write(
-        `\rgenerating (${(
-          (i / n) *
-          100
-        ).toFixed()}% / ${elapsedTime.toFixed()}ms)`
-      );
-    }
+    if (report) updateProgress(i);
   }
-
-  if (report) console.log();
 
   return { x, y, xMin, xMax, yMin, yMax };
 }
 
 function analyzeData({ x, y, xMin, xMax, yMin, yMax }, report = true) {
-  const startTime = performance.now();
   const cells = {};
 
   // divide the smallest side in at least 100 cells
@@ -177,6 +166,7 @@ function analyzeData({ x, y, xMin, xMax, yMin, yMax }, report = true) {
   // analyze maximum 1M first points
   // spread does not increase much beyond that
   const n = Math.min(x.length, 1000000);
+  const updateProgress = createProgressUpdater("analyzing", n);
   for (let i = 0; i < n; i++) {
     const cellX = floorToMultiple(x[i], cellSize);
     const cellY = floorToMultiple(y[i], cellSize);
@@ -185,18 +175,10 @@ function analyzeData({ x, y, xMin, xMax, yMin, yMax }, report = true) {
       cells[cellKey] = 1;
     }
 
-    if (report && i % 1000 === 0) {
-      const elapsedTime = performance.now() - startTime;
-      process.stdout.write(
-        `\ranalyzing (${(
-          (i / n) *
-          100
-        ).toFixed()}% / ${elapsedTime.toFixed()}ms)`
-      );
+    if (report) {
+      updateProgress(i);
     }
   }
-
-  if (report) console.log();
 
   const spread = Object.keys(cells).length / (cols * rows);
 
@@ -257,10 +239,38 @@ function opacityToHex(opacity) {
     .padStart(2, "0");
 }
 
+function createProgressUpdater(
+  processName,
+  totalIterations,
+  updateInterval = 100
+) {
+  const startTime = performance.now();
+  let lastUpdateTime = 0;
+
+  return function updateProgress(iteration) {
+    const currentTime = performance.now();
+    const isLast = iteration === totalIterations - 1;
+
+    if (currentTime - lastUpdateTime >= updateInterval || isLast) {
+      const elapsedTime = currentTime - startTime;
+      const progressString = `\r${processName}: ${(
+        (iteration / totalIterations) *
+        100
+      ).toFixed()}% / ${elapsedTime.toFixed()}ms`;
+      process.stdout.write(progressString);
+
+      lastUpdateTime = currentTime;
+    }
+
+    if (isLast) {
+      process.stdout.write("\n");
+    }
+  };
+}
+
 function draw(context, data, settings, report = true) {
   const { x, y, xMin, xMax, yMin, yMax } = data;
   const { color, background, width, height, marginRatio, opacity } = settings;
-  const startTime = performance.now();
 
   context.fillStyle = background;
   context.fillRect(0, 0, width, height);
@@ -278,23 +288,14 @@ function draw(context, data, settings, report = true) {
 
   context.fillStyle = `${color}${opacityToHex(opacity)}`;
 
+  const updateProgress = createProgressUpdater("drawing", x.length);
   for (let i = 0; i < x.length; i++) {
     let ix = centerX + (x[i] - xMin) * scale;
     let iy = centerY + (y[i] - yMin) * scale;
     context.fillRect(ix, iy, 1, 1);
 
-    if (report && i % 1000 === 0) {
-      const elapsedTime = performance.now() - startTime;
-      process.stdout.write(
-        `\rdrawing (${(
-          (i / x.length) *
-          100
-        ).toFixed()}% / ${elapsedTime.toFixed()}ms)`
-      );
-    }
+    if (report) updateProgress(i);
   }
-
-  if (report) console.log();
 }
 
 /**
