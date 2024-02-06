@@ -117,7 +117,7 @@ function computeLyapunov(params, xFn, yFn) {
     }
 
     if (i > lyapunovStart) {
-      const [newXe, newYe] = attractor(xe, ye, params.ax, params.ay);
+      const [newXe, newYe] = attractor(xe, ye, params.ax, params.ay, xFn, yFn);
       const dxe = x[i] - newXe;
       const dye = y[i] - newYe;
       const dd = Math.sqrt(dxe * dxe + dye * dye);
