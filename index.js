@@ -59,22 +59,30 @@ function createParams(rand) {
   return { ax, ay };
 }
 
-function generateAttractor({ ax, ay, x0, y0 }, n, xFn, yFn, report = true) {
+function generateAttractor(params, n, mods, report = true) {
+  const { ax, ay, x0, y0 } = params;
   const points = [[x0, y0]];
   const updateProgress = createProgressUpdater("generating", n);
 
   for (let i = 1; i < n; i++) {
-    points[i] = attractor(points[i - 1][0], points[i - 1][1], ax, ay, xFn, yFn);
+    points[i] = attractor(
+      points[i - 1][0],
+      points[i - 1][1],
+      ax,
+      ay,
+      mods[0],
+      mods[1]
+    );
     if (report) updateProgress(i);
   }
 
   return points;
 }
 
-function computeLyapunov(params, xFn, yFn) {
+function computeLyapunov(params, mods) {
   const lyapunovStart = 1000;
   const lyapunovEnd = 50000;
-  const points = generateAttractor(params, lyapunovEnd, xFn, yFn, false);
+  const points = generateAttractor(params, lyapunovEnd, mods, false);
   const { xMin, xMax, yMin, yMax } = computeBounds(points);
   let lyapunov = 0;
   let dRand = randFromSeed("disturbance");
@@ -112,7 +120,14 @@ function computeLyapunov(params, xFn, yFn) {
     }
 
     if (i > lyapunovStart) {
-      const [newXe, newYe] = attractor(xe, ye, params.ax, params.ay, xFn, yFn);
+      const [newXe, newYe] = attractor(
+        xe,
+        ye,
+        params.ax,
+        params.ay,
+        mods[0],
+        mods[1]
+      );
       const dxe = points[i][0] - newXe;
       const dye = points[i][1] - newYe;
       const dd = Math.sqrt(dxe * dxe + dye * dye);
@@ -234,12 +249,11 @@ export function render(seed, settings, report = true) {
 
   const rand = randFromSeed(seed);
   const params = createParams(rand);
-  const xFn = modifiers[xMod];
-  const yFn = modifiers[yMod];
+  const mods = [modifiers[xMod], modifiers[yMod]];
   const x0 = rand() - 0.5;
   const y0 = rand() - 0.5;
 
-  if (!computeLyapunov({ ...params, x0, y0 }, xFn, yFn)) {
+  if (!computeLyapunov({ ...params, x0, y0 }, mods)) {
     return;
   }
 
@@ -247,8 +261,7 @@ export function render(seed, settings, report = true) {
   const points = generateAttractor(
     { ...params, x0, y0 },
     pointCount,
-    xFn,
-    yFn,
+    mods,
     report
   );
   const bounds = computeBounds(points);
