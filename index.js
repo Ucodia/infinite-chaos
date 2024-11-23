@@ -291,7 +291,7 @@ export function render(seed, settings, report = true) {
   const outputFile = path.join(outputDir, `${seed}_${xMod}_${yMod}.png`);
   const buffer = canvas.toBuffer("image/png");
 
-  sharp(buffer).png({ quality }).toFile(outputFile);
+  sharp(buffer).removeAlpha().png({ quality }).toFile(outputFile);
 }
 
 /**
