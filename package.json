@@ -11,7 +11,7 @@
   },
   "scripts": {},
   "dependencies": {
-    "canvas": "^2.11.2",
+    "canvas": "^3.0.0-rc2",
     "commander": "^11.1.0",
     "sharp": "^0.33.2"
   }
