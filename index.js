@@ -185,18 +185,20 @@ function computeSpread(points, bounds, report = true) {
   // spread does not increase much beyond that
   const n = Math.min(points.length, 1000000);
   const updateProgress = createProgressUpdater("analyzing", n);
+  let uniqueCellCount = 0;
   for (let i = 0; i < n; i++) {
     const cellX = floorToMultiple(points[i][0], cellSize);
     const cellY = floorToMultiple(points[i][1], cellSize);
     const cellKey = `${cellX}_${cellY}`;
     if (!cells[cellKey]) {
       cells[cellKey] = 1;
+      uniqueCellCount++;
     }
 
     if (report) updateProgress(i);
   }
 
-  const spread = Object.keys(cells).length / (cols * rows);
+  const spread = uniqueCellCount / (cols * rows);
 
   return spread;
 }
