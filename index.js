@@ -56,7 +56,9 @@ function createParams(rand) {
     ax[i] = 4 * (rand() - 0.5);
     ay[i] = 4 * (rand() - 0.5);
   }
-  return { ax, ay };
+  const x0 = rand() - 0.5;
+  const y0 = rand() - 0.5;
+  return { ax, ay, x0, y0 };
 }
 
 function generateAttractor(params, n, mods, report = true) {
@@ -79,7 +81,13 @@ function generateAttractor(params, n, mods, report = true) {
   return points;
 }
 
-function computeLyapunov(params, mods) {
+/**
+ * Checks if the attractor is chaotic using the Lyapunov exponent
+ * @param {*} params Attractor parameters
+ * @param {*} mods Modifiers to apply to the attractor
+ * @returns True if the attractor is chaotic, false otherwise
+ */
+function isChaotic(params, mods) {
   const lyapunovStart = 1000;
   const lyapunovEnd = 50000;
   const points = generateAttractor(params, lyapunovEnd, mods, false);
@@ -252,20 +260,13 @@ export function render(seed, settings, report = true) {
   const rand = randFromSeed(seed);
   const params = createParams(rand);
   const mods = [modifiers[xMod], modifiers[yMod]];
-  const x0 = rand() - 0.5;
-  const y0 = rand() - 0.5;
 
-  if (!computeLyapunov({ ...params, x0, y0 }, mods)) {
+  if (!isChaotic(params, mods)) {
     return;
   }
 
   console.log(`seed: ${seed}\tmods: ${xMod}/${yMod}`);
-  const points = generateAttractor(
-    { ...params, x0, y0 },
-    pointCount,
-    mods,
-    report
-  );
+  const points = generateAttractor(params, pointCount, mods, report);
   const bounds = computeBounds(points);
 
   // sometimes non-chaotic properties only show after generation

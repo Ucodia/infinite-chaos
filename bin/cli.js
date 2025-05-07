@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env node --max-old-space-size=8192
 
 import cluster from "cluster";
 import { Command } from "commander";
@@ -6,12 +6,29 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { fileURLToPath } from "url";
-import defaultConfig from "../chaos.config.js";
 import { mine, render } from "../index.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const pkgPath = path.join(__dirname, "../package.json");
 const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
+
+const defaultSettings = {
+  // attractor settings
+  pointCount: 100000,
+  xMod: "",
+  yMod: "",
+  // render settings
+  color: "#00ffa4",
+  background: "#333333",
+  width: 1080,
+  height: 1080,
+  marginRatio: 0.25,
+  opacity: 0.5,
+  output: "./output",
+  quality: 100,
+  // spread filter
+  spreadFilter: 0.2,
+};
 
 function splitMods(value) {
   return value.split("/");
@@ -83,16 +100,7 @@ if (options.seed && options.mine) {
   process.exit(1);
 }
 
-let settings = { ...defaultConfig };
-
-// TODO: try to make this work to load local config files
-// try {
-//   const configPath = join(process.cwd(), "chaos.config.js");
-//   const userConfig = await import(pathToFileURL(configPath));
-//   settings = { ...settings, ...userConfig.default };
-// } catch (error) {}
-
-settings = { ...settings, ...options };
+let settings = { ...defaultSettings, ...options };
 
 let seedValue;
 if (options.seed) {
