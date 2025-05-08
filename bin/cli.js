@@ -81,7 +81,8 @@ program
   .option("-o, --output [path]", "Rendering output directory.")
   .option(
     "-q, --quality [quality]",
-    "Rendering output quality from 0 to 100 (default: 90)."
+    "Rendering output quality from 0 to 100 (default: 90).",
+    parseNumber
   )
   .option(
     "-f, --filter [filter]",
