@@ -25,7 +25,7 @@ const defaultSettings = {
   marginRatio: 0.25,
   opacity: 0.5,
   output: "./output",
-  quality: 100,
+  quality: 99,
   // spread filter
   spreadFilter: 0.2,
 };
