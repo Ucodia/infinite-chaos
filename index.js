@@ -213,7 +213,8 @@ function computeSpread(points, bounds, report = true) {
 
 function draw(context, points, bounds, settings, report = true) {
   const { xMin, xMax, yMin, yMax } = bounds;
-  const { color, background, width, height, marginRatio, opacity } = settings;
+  const { color, background, width, height, marginRatio, opacity, primitive } =
+    settings;
 
   context.fillStyle = background;
   context.fillRect(0, 0, width, height);
@@ -235,7 +236,15 @@ function draw(context, points, bounds, settings, report = true) {
   for (let i = 0; i < points.length; i++) {
     let ix = centerX + (points[i][0] - xMin) * scale;
     let iy = centerY + (points[i][1] - yMin) * scale;
-    context.fillRect(ix, iy, 1, 1);
+
+    if (primitive === "circle") {
+      context.beginPath();
+      context.ellipse(ix, iy, 0.5, 0.5, 0, 0, Math.PI * 2);
+      context.closePath();
+      context.fill();
+    } else {
+      context.fillRect(ix, iy, 1, 1);
+    }
 
     if (report) updateProgress(i);
   }
@@ -255,6 +264,7 @@ export function render(seed, settings, report = true) {
     output,
     quality,
     spreadFilter,
+    primitive,
   } = settings;
 
   const rand = randFromSeed(seed);

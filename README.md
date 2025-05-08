@@ -33,8 +33,7 @@ Command line tool to generate and render chaotic attractors
 
 Options:
   -V, --version                  output the version number
-  -s, --seed [seed]              Seed for the attractor parameters. Also support inclusion of modifiers in
-                                 seed_fn_fn format (i.e. abcdef_sin_cos).
+  -s, --seed [seed]              Seed for the attractor parameters. Also support inclusion of modifiers in seed_fn_fn format (i.e. abcdef_sin_cos).
   -m, --mine                     Mine attractor parameters by automatically generating parameters.
   -n, --pointCount [count]       Number of points to generate the attractor.
   -d, --mods [mods]              Modifier functions for the x and y coordinates in fn/fn format (i.e. sin/cos).
@@ -46,9 +45,9 @@ Options:
   -a, --opacity [opacity]        Rendering opacity.
   -o, --output [path]            Rendering output directory.
   -q, --quality [quality]        Rendering output quality from 0 to 100 (default: 90).
-  -f, --filter [filter]          Spread filtering level to skip the rendering of clustered outputs from 0 to 1
-                                 (default: 0.2).
+  -f, --filter [filter]          Spread filtering level to skip the rendering of clustered outputs from 0 to 1 (default: 0.2).
   -C, --cpus [cpus]              Number of CPU cores to use for mining.
+  -p, --primitive [style]        Primitive style for drawing points (rect or circle, default: rect)
   --help                         display help for command
 ```
 

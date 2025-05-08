@@ -28,6 +28,8 @@ const defaultSettings = {
   quality: 99,
   // spread filter
   spreadFilter: 0.2,
+  // primitive style
+  primitive: "rect",
 };
 
 function splitMods(value) {
@@ -88,7 +90,11 @@ program
     "-f, --filter [filter]",
     "Spread filtering level to skip the rendering of clustered outputs from 0 to 1 (default: 0.2)."
   )
-  .option("-C, --cpus [cpus]", "Number of CPU cores to use for mining.");
+  .option("-C, --cpus [cpus]", "Number of CPU cores to use for mining.")
+  .option(
+    "-p, --primitive [style]",
+    "Primitive style for drawing points (rect or circle, default: rect)"
+  );
 
 program.parse(process.argv);
 
