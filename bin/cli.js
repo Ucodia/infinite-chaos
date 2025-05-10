@@ -12,26 +12,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const pkgPath = path.join(__dirname, "../package.json");
 const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
 
-const defaultSettings = {
-  // attractor settings
-  pointCount: 100000,
-  xMod: "",
-  yMod: "",
-  // render settings
-  color: "#00ffa4",
-  background: "#333333",
-  width: 1080,
-  height: 1080,
-  marginRatio: 0.25,
-  opacity: 0.5,
-  output: "./output",
-  quality: 99,
-  // spread filter
-  spreadFilter: 0.2,
-  // primitive style
-  primitive: "rect",
-};
-
 function splitMods(value) {
   return value.split("/");
 }
@@ -67,34 +47,56 @@ program
   )
   .option(
     "-n, --pointCount [count]",
-    "Number of points to generate the attractor."
+    "Number of points to generate the attractor",
+    parseNumber,
+    100000
   )
   .option(
     "-d, --mods [mods]",
-    "Modifier functions for the x and y coordinates in fn/fn format (i.e. sin/cos).",
+    "Modifier functions for the x and y coordinates in fn/fn format (i.e. sin/cos)",
     splitMods
   )
-  .option("-c, --color [color]", "Rendering color.")
-  .option("-b, --background [background]", "Rendering background color.")
-  .option("-w, --width [width]", "Rendering width.", parseNumber)
-  .option("-h, --height [height]", "Rendering height.", parseNumber)
-  .option("-r, --marginRatio [ratio]", "Rendering margin ratio.")
-  .option("-a, --opacity [opacity]", "Rendering opacity.")
-  .option("-o, --output [path]", "Rendering output directory.")
+  .option("-c, --color [color]", "Rendering color", "#00ffa4")
+  .option(
+    "-b, --background [background]",
+    "Rendering background color",
+    "#333333"
+  )
+  .option("-w, --width [width]", "Rendering width", parseNumber, 1080)
+  .option("-h, --height [height]", "Rendering height", parseNumber, 1080)
+  .option(
+    "-r, --marginRatio [ratio]",
+    "Rendering margin ratio",
+    parseNumber,
+    0.25
+  )
+  .option("-a, --alpha [alpha]", "Rendering alpha", parseNumber, 0.5)
+  .option("-o, --output [path]", "Rendering output directory", "./output")
   .option(
     "-q, --quality [quality]",
-    "Rendering output quality from 0 to 100 (default: 90).",
-    parseNumber
+    "Rendering output quality from 0 to 100",
+    parseNumber,
+    99
   )
   .option(
     "-f, --filter [filter]",
-    "Spread filtering level to skip the rendering of clustered outputs from 0 to 1 (default: 0.2)."
+    "Spread filtering level to skip the rendering of clustered outputs from 0 to 1",
+    parseNumber,
+    0.2
   )
-  .option("-C, --cpus [cpus]", "Number of CPU cores to use for mining.")
+  .option("-C, --cpus [cpus]", "Number of CPU cores to use for mining")
   .option(
     "-p, --primitive [style]",
-    "Primitive style for drawing points (rect or circle, default: rect)"
-  );
+    "Primitive style for drawing points (rect or circle)",
+    "rect"
+  )
+  .configureHelp({
+    optionDescription: (option) => {
+      const defaultValue = option.defaultValue;
+      if (defaultValue === undefined) return option.description;
+      return `${option.description} (default: ${defaultValue})`;
+    },
+  });
 
 program.parse(process.argv);
 
@@ -107,7 +109,7 @@ if (options.seed && options.mine) {
   process.exit(1);
 }
 
-let settings = { ...defaultSettings, ...options };
+let settings = { ...options };
 
 let seedValue;
 if (options.seed) {

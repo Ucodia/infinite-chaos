@@ -5,7 +5,7 @@ import {
   createProgressUpdater,
   floorToFirstDecimal,
   floorToMultiple,
-  opacityToHex,
+  alphaToHex,
   randFromSeed,
   randomString,
 } from "./utlis.js";
@@ -213,7 +213,7 @@ function computeSpread(points, bounds, report = true) {
 
 function draw(context, points, bounds, settings, report = true) {
   const { xMin, xMax, yMin, yMax } = bounds;
-  const { color, background, width, height, marginRatio, opacity, primitive } =
+  const { color, background, width, height, marginRatio, alpha, primitive } =
     settings;
 
   context.fillStyle = background;
@@ -230,7 +230,7 @@ function draw(context, points, bounds, settings, report = true) {
   const centerX = (width - attractorWidth * scale) / 2;
   const centerY = (height - attractorHeight * scale) / 2;
 
-  context.fillStyle = `${color}${opacityToHex(opacity)}`;
+  context.fillStyle = `${color}${alphaToHex(alpha)}`;
 
   const updateProgress = createProgressUpdater("drawing", points.length);
   for (let i = 0; i < points.length; i++) {

@@ -45,8 +45,8 @@ export function floorToMultiple(number, increment) {
   return Math.round(roundedValue * factor) / factor;
 }
 
-export function opacityToHex(opacity) {
-  return Math.round(Math.max(0, Math.min(1, opacity)) * 255)
+export function alphaToHex(alpha) {
+  return Math.round(Math.max(0, Math.min(1, alpha)) * 255)
     .toString(16)
     .toUpperCase()
     .padStart(2, "0");
