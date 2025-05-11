@@ -38,7 +38,7 @@ Options:
   -n, --pointCount [count]       Number of points to generate the attractor (default: 100000)
   -d, --mods [mods]              Modifier functions for the x and y coordinates in fn/fn format (i.e. sin/cos)
   -c, --color [color]            Rendering color (default: #00ffa4)
-  -b, --background [background]  Rendering background color (default: #333333)
+  -b, --background [background]  Rendering background color (default: #000000)
   -w, --width [width]            Rendering width (default: 1080)
   -h, --height [height]          Rendering height (default: 1080)
   -r, --marginRatio [ratio]      Rendering margin ratio (default: 0.25)

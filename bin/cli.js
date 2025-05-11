@@ -60,7 +60,7 @@ program
   .option(
     "-b, --background [background]",
     "Rendering background color",
-    "#333333"
+    "#000000"
   )
   .option("-w, --width [width]", "Rendering width", parseNumber, 1080)
   .option("-h, --height [height]", "Rendering height", parseNumber, 1080)
