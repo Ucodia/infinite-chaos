@@ -84,6 +84,12 @@ program
     parseNumber,
     0.2
   )
+  .option(
+    "--discard [points]",
+    "Number of initial points to discard from the attractor",
+    parseNumber,
+    100
+  )
   .option("-C, --cpus [cpus]", "Number of CPU cores to use for mining")
   .option(
     "-p, --primitive [style]",

@@ -265,6 +265,7 @@ export function render(seed, settings, report = true) {
     quality,
     spreadFilter,
     primitive,
+    discard,
   } = settings;
 
   const rand = randFromSeed(seed);
@@ -276,7 +277,11 @@ export function render(seed, settings, report = true) {
   }
 
   console.log(`seed: ${seed}\tmods: ${xMod}/${yMod}`);
-  const points = generateAttractor(params, pointCount, mods, report);
+  let points = generateAttractor(params, pointCount + discard, mods, report);
+
+  // discard initial points
+  points = points.slice(discard);
+
   const bounds = computeBounds(points);
 
   // sometimes non-chaotic properties only show after generation
